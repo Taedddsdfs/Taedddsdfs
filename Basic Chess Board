@@ -1,0 +1,156 @@
+
+/*Chess game using C++ and the SDL library.
+The code initializes SDL, loads the images for the chess pieces, creates textures from the surface images, creates the chess board and pieces, and enters the main game loop. 
+In the main game loop, it handles user input, updates the screen by drawing the chess board and pieces, and then waits for the next frame. 
+When the user closes the window or quits the game, the code cleans up resources and exits.*/
+
+
+
+
+#include <iostream>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
+
+using namespace std;
+
+const int SCREEN_WIDTH = 640;
+const int SCREEN_HEIGHT = 640;
+
+// Structure to represent a chess piece
+struct Piece {
+    int x;
+    int y;
+    int type;
+    bool white;
+};
+
+int main() {
+    // Initialize SDL and create the window and renderer
+    SDL_Init(SDL_INIT_VIDEO);
+    SDL_Window *window = SDL_CreateWindow("Chess", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
+    // Load the images for the chess pieces
+    SDL_Surface *white_pawn = SDL_LoadBMP("white_pawn.bmp");
+    SDL_Surface *black_pawn = SDL_LoadBMP("black_pawn.bmp");
+    SDL_Surface *white_rook = SDL_LoadBMP("white_rook.bmp");
+    SDL_Surface *black_rook = SDL_LoadBMP("black_rook.bmp");
+
+    // Create a texture for each piece and set the blend mode to SDL_BLENDMODE_BLEND
+    SDL_Texture *white_pawn_tex = SDL_CreateTextureFromSurface(renderer, white_pawn);
+    SDL_Texture *black_pawn_tex = SDL_CreateTextureFromSurface(renderer, black_pawn);
+    SDL_Texture *white_rook_tex = SDL_CreateTextureFromSurface(renderer, white_rook);
+    SDL_Texture *black_rook_tex = SDL_CreateTextureFromSurface(renderer, black_rook);
+    SDL_SetTextureBlendMode(white_pawn_tex, SDL_BLENDMODE_BLEND);
+    SDL_SetTextureBlendMode(black_pawn_tex, SDL_BLENDMODE_BLEND);
+    SDL_SetTextureBlendMode(white_rook_tex, SDL_BLENDMODE_BLEND);
+    SDL_SetTextureBlendMode(black_rook_tex, SDL_BLENDMODE_BLEND);
+
+    // Create the chess board and pieces
+    const int BOARD_SIZE = 8;
+    Piece board[BOARD_SIZE][BOARD_SIZE];
+    for (int i = 0; i < BOARD_SIZE; i++) {
+        for (int j = 0; j < BOARD_SIZE; j++) {
+            board[i][j].x = i;
+            board[i][j].y = j;
+            board[i][j].type = 0;
+            board[i][j].white = (i + j) % 2 == 0;
+        }
+    }
+    board[1][0].type = 1;
+    board[1][1].type = 1;
+    board[1][2].type = 1;
+    board[1][3].type = 1;
+    board[1][4].type = 1;
+    board[1][5].type = 1;
+    board[1][6].type = 1;
+    board[1][7].type = 1;
+    board[6][0].type = 1;
+    board[6][1].type = 1;
+    board[6][2].type = 1;
+    board[6][3].type = 1;
+    board[6][4].type = 1;
+    board[6][5].type = 1;
+    board[6][6].type = 1;
+    board[6][7].type = 1;
+    board[0][0].type = 2;
+    board[0][7].type = 2;
+    board[7][0].type = 2;
+    board[7][7].type = 2;
+
+    // Set up the main game loop
+    bool quit = false;
+    while (!quit) {
+        // Handle events
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                quit = true;
+            }
+        }
+
+        // Clear the screen
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+
+        // Draw the chess board and pieces
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                // Draw the square
+                if (board[i][j].white) {
+                    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                } else {
+                    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+                }
+                SDL_Rect rect;
+                rect.x = i * SCREEN_WIDTH / BOARD_SIZE;
+                rect.y = j * SCREEN_HEIGHT / BOARD_SIZE;
+                rect.w = SCREEN_WIDTH / BOARD_SIZE;
+                rect.h = SCREEN_HEIGHT / BOARD_SIZE;
+                SDL_RenderFillRect(renderer, &rect);
+
+                // Draw the piece
+                SDL_Texture *tex = NULL;
+                if (board[i][j].type == 1) {
+                    if (board[i][j].white) {
+                        tex = white_pawn_tex;
+                    } else {
+                        tex = black_pawn_tex;
+                    }
+                } else if (board[i][j].type == 2) {
+                    if (board[i][j].white) {
+                        tex = white_rook_tex;
+                    } else {
+                        tex = black_rook_tex;
+                    }
+                }
+                if (tex != NULL) {
+                    SDL_Rect dst;
+                    dst.x = i * SCREEN_WIDTH / BOARD_SIZE;
+                    dst.y = j * SCREEN_HEIGHT / BOARD_SIZE;
+                    dst.w = SCREEN_WIDTH / BOARD_SIZE;
+                    dst.h = SCREEN_HEIGHT / BOARD_SIZE;
+                    SDL_RenderCopy(renderer, tex, NULL, &dst);
+                }
+            }
+        }
+
+        // Update the screen
+        SDL_RenderPresent(renderer);
+    }
+
+    // Clean up
+    SDL_DestroyTexture(white_pawn_tex);
+    SDL_DestroyTexture(black_pawn_tex);
+    SDL_DestroyTexture(white_rook_tex);
+    SDL_DestroyTexture(black_rook_tex);
+    SDL_FreeSurface(white_pawn);
+    SDL_FreeSurface(black_pawn);
+    SDL_FreeSurface(white_rook);
+    SDL_FreeSurface(black_rook);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+
+    return 0;
