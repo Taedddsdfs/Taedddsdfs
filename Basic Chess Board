@@ -1,156 +1,169 @@
+/*The first square is the square the piece is moving from, and the second square is the square the piece is moving to.
 
-/*Chess game using C++ and the SDL library.
-The code initializes SDL, loads the images for the chess pieces, creates textures from the surface images, creates the chess board and pieces, and enters the main game loop. 
-In the main game loop, it handles user input, updates the screen by drawing the chess board and pieces, and then waits for the next frame. 
-When the user closes the window or quits the game, the code cleans up resources and exits.*/
+The squares are represented by a letter and a number, where the letter indicates the column (a-h) and the number indicates the row (1-8). 
+So, for example, "e2" means the square in the fifth column (counting from left to right) and the second row (counting from bottom to top).
 
-
+In this case, "e2 e4" would be a move to move a piece from the e2 square to the e4 square, which is a common move for pawn.
+It is also possible for other pieces, such as knights, to move to the e4 square, but it would depend on the specific position of the pieces on the board.
+Wish I implemented SDL to show the graphics to make it look like a chess game on Mac with no chess AI though.*/
 
 
 #include <iostream>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_ttf.h>
+#include <string>
+#include <random>
 
-using namespace std;
+// Represents a chess board.
+class Board {
+ public:
+  // Initializes the board to the starting position.
+  Board() {
+    for (int i = 0; i < 8; i++) {
+      for (int j = 0; j < 8; j++) {
+        if (i == 1) {
+          board_[i][j] = 'p';
+        } else if (i == 6) {
+          board_[i][j] = 'P';
+        } else {
+          board_[i][j] = ' ';
+        }
+      }
+    }
+  }
 
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 640;
+  // Returns the piece at the given position, or ' ' if the position is empty.
+  char GetPiece(int row, int col) const {
+    return board_[row][col];
+  }
 
-// Structure to represent a chess piece
-struct Piece {
-    int x;
-    int y;
-    int type;
-    bool white;
+  // Makes the given move on the board. Returns true if the move was successful,
+  // false otherwise.
+  bool MakeMove(int from_row, int from_col, int to_row, int to_col) {
+    // Check that the from and to positions are on the board.
+    if (from_row < 0 || from_row >= 8 || from_col < 0 || from_col >= 8 ||
+        to_row < 0 || to_row >= 8 || to_col < 0 || to_col >= 8) {
+      return false;
+    }
+
+    // Check that there is a piece at the from position.
+    if (board_[from_row][from_col] == ' ') {
+      return false;
+    }
+
+    // Check that the to position is empty or contains an enemy piece.
+    char from_piece = board_[from_row][from_col];
+    char to_piece = board_[to_row][to_col];
+    if (from_piece == 'P' || from_piece == 'p') {
+      // Pawns can only move diagonally if they are capturing an enemy piece.
+      if (from_col != to_col && to_piece == ' ') {
+        return false;
+      }
+      // Pawns can only move forward one space at a time.
+      if (from_row - to_row != 1 && from_row - to_row != -1) {
+        return false;
+      }
+    } else {
+      // All other pieces can only move to an empty space.
+      if (to_piece != ' ') {
+        return false;
+      }
+    }
+
+    // Make the move.
+    board_[to_row][to_col] = from_piece;
+    board_[from_row][from_col] = ' ';
+    return true;
+  }
+
+ private:
+  char board_[8][8];
 };
 
+int ColToInt(char col) {
+  if (col >= 'a' && col <= 'h') {
+    return col - 'a';
+  }
+  return -1;
+}
+
+// Converts a row number (1-8) to a row index (0-7).
+int RowToInt(char row) {
+  if (row >= '1' && row <= '8') {
+    return row - '1';
+  }
+  return -1;
+}
+
+// Prompts the user for a move and returns the move as a pair of (from_row, from_col,
+// to_row, to_col). Returns (-1, -1, -1, -1) if the user enters 'q' to quit.
+std::tuple<int, int, int, int> GetUserMove() {
+  while (true) {
+    std::cout << "Enter a move (e.g. e2 e4): ";
+    std::string line;
+    std::getline(std::cin, line);
+    if (line == "q") {
+      return std::make_tuple(-1, -1, -1, -1);
+    }
+    if (line.length() != 5) {
+      continue;
+    }
+    int from_col = ColToInt(line[0]);
+    int from_row = RowToInt(line[1]);
+    int to_col = ColToInt(line[3]);
+    int to_row = RowToInt(line[4]);
+    if (from_col == -1 || from_row == -1 || to_col == -1 || to_row == -1) {
+      continue;
+    }
+    return std::make_tuple(from_row, from_col, to_row, to_col);
+  }
+}
+
+// Returns a random legal move from the given board.
+std::tuple<int, int, int, int> GetRandomMove(const Board& board) {
+  std::random_device rd;
+  std::mt19937 rng(rd());
+  std::uniform_int_distribution<int> row_dist(0, 7);
+  std::uniform_int_distribution<int> col_dist(0, 7);
+  while (true) {
+    int from_row = row_dist(rng);
+    int from_col = col_dist(rng);
+    int to_row = row_dist(rng);
+    int to_col = col_dist(rng);
+    if (board.MakeMove(from_row, from_col, to_row, to_col)) {
+      return std::make_tuple(from_row, from_col, to_row, to_col);
+    }
+  }
+}
+
+void PrintBoard(const Board& board) {
+  std::cout << "  a b c d e f g h" << std::endl;
+  for (int i = 0; i < 8; i++) {
+    std::cout << (8 - i) << " ";
+    for (int j = 0; j < 8; j++) {
+      std::cout << board.GetPiece(i, j) << " ";
+    }
+    std::cout << std::endl;
+  }
+}
+
 int main() {
-    // Initialize SDL and create the window and renderer
-    SDL_Init(SDL_INIT_VIDEO);
-    SDL_Window *window = SDL_CreateWindow("Chess", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-
-    // Load the images for the chess pieces
-    SDL_Surface *white_pawn = SDL_LoadBMP("white_pawn.bmp");
-    SDL_Surface *black_pawn = SDL_LoadBMP("black_pawn.bmp");
-    SDL_Surface *white_rook = SDL_LoadBMP("white_rook.bmp");
-    SDL_Surface *black_rook = SDL_LoadBMP("black_rook.bmp");
-
-    // Create a texture for each piece and set the blend mode to SDL_BLENDMODE_BLEND
-    SDL_Texture *white_pawn_tex = SDL_CreateTextureFromSurface(renderer, white_pawn);
-    SDL_Texture *black_pawn_tex = SDL_CreateTextureFromSurface(renderer, black_pawn);
-    SDL_Texture *white_rook_tex = SDL_CreateTextureFromSurface(renderer, white_rook);
-    SDL_Texture *black_rook_tex = SDL_CreateTextureFromSurface(renderer, black_rook);
-    SDL_SetTextureBlendMode(white_pawn_tex, SDL_BLENDMODE_BLEND);
-    SDL_SetTextureBlendMode(black_pawn_tex, SDL_BLENDMODE_BLEND);
-    SDL_SetTextureBlendMode(white_rook_tex, SDL_BLENDMODE_BLEND);
-    SDL_SetTextureBlendMode(black_rook_tex, SDL_BLENDMODE_BLEND);
-
-    // Create the chess board and pieces
-    const int BOARD_SIZE = 8;
-    Piece board[BOARD_SIZE][BOARD_SIZE];
-    for (int i = 0; i < BOARD_SIZE; i++) {
-        for (int j = 0; j < BOARD_SIZE; j++) {
-            board[i][j].x = i;
-            board[i][j].y = j;
-            board[i][j].type = 0;
-            board[i][j].white = (i + j) % 2 == 0;
-        }
+  Board board;
+  while (true) {
+    PrintBoard(board);
+    std::tuple<int, int, int, int> move = GetUserMove();
+    if (std::get<0>(move) == -1) {
+      break;
     }
-    board[1][0].type = 1;
-    board[1][1].type = 1;
-    board[1][2].type = 1;
-    board[1][3].type = 1;
-    board[1][4].type = 1;
-    board[1][5].type = 1;
-    board[1][6].type = 1;
-    board[1][7].type = 1;
-    board[6][0].type = 1;
-    board[6][1].type = 1;
-    board[6][2].type = 1;
-    board[6][3].type = 1;
-    board[6][4].type = 1;
-    board[6][5].type = 1;
-    board[6][6].type = 1;
-    board[6][7].type = 1;
-    board[0][0].type = 2;
-    board[0][7].type = 2;
-    board[7][0].type = 2;
-    board[7][7].type = 2;
-
-    // Set up the main game loop
-    bool quit = false;
-    while (!quit) {
-        // Handle events
-        SDL_Event event;
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
-                quit = true;
-            }
-        }
-
-        // Clear the screen
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderClear(renderer);
-
-        // Draw the chess board and pieces
-        for (int i = 0; i < BOARD_SIZE; i++) {
-            for (int j = 0; j < BOARD_SIZE; j++) {
-                // Draw the square
-                if (board[i][j].white) {
-                    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-                } else {
-                    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-                }
-                SDL_Rect rect;
-                rect.x = i * SCREEN_WIDTH / BOARD_SIZE;
-                rect.y = j * SCREEN_HEIGHT / BOARD_SIZE;
-                rect.w = SCREEN_WIDTH / BOARD_SIZE;
-                rect.h = SCREEN_HEIGHT / BOARD_SIZE;
-                SDL_RenderFillRect(renderer, &rect);
-
-                // Draw the piece
-                SDL_Texture *tex = NULL;
-                if (board[i][j].type == 1) {
-                    if (board[i][j].white) {
-                        tex = white_pawn_tex;
-                    } else {
-                        tex = black_pawn_tex;
-                    }
-                } else if (board[i][j].type == 2) {
-                    if (board[i][j].white) {
-                        tex = white_rook_tex;
-                    } else {
-                        tex = black_rook_tex;
-                    }
-                }
-                if (tex != NULL) {
-                    SDL_Rect dst;
-                    dst.x = i * SCREEN_WIDTH / BOARD_SIZE;
-                    dst.y = j * SCREEN_HEIGHT / BOARD_SIZE;
-                    dst.w = SCREEN_WIDTH / BOARD_SIZE;
-                    dst.h = SCREEN_HEIGHT / BOARD_SIZE;
-                    SDL_RenderCopy(renderer, tex, NULL, &dst);
-                }
-            }
-        }
-
-        // Update the screen
-        SDL_RenderPresent(renderer);
+    if (!board.MakeMove(std::get<0>(move), std::get<1>(move),
+                        std::get<2>(move), std::get<3>(move))) {
+      std::cout << "Invalid move." << std::endl;
+      continue;
     }
-
-    // Clean up
-    SDL_DestroyTexture(white_pawn_tex);
-    SDL_DestroyTexture(black_pawn_tex);
-    SDL_DestroyTexture(white_rook_tex);
-    SDL_DestroyTexture(black_rook_tex);
-    SDL_FreeSurface(white_pawn);
-    SDL_FreeSurface(black_pawn);
-    SDL_FreeSurface(white_rook);
-    SDL_FreeSurface(black_rook);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-
-    return 0;
+    PrintBoard(board);
+    move = GetRandomMove(board);
+    std::cout << "Computer moves from " << (char)('a' + std::get<1>(move))
+              << (8 - std::get<0>(move)) << " to "
+              << (char)('a' + std::get<3>(move)) << (8 - std::get<2>(move))
+              << std::endl;
+  }
+  return 0;
+}
