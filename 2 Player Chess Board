@@ -15,16 +15,15 @@ Wish I implemented SDL to show the graphics to make it look like a chess game on
 // Represents a chess board.
 class Board {
  public:
-  // Initializes the board to the starting position.
   Board() {
     for (int i = 0; i < 8; i++) {
       for (int j = 0; j < 8; j++) {
         if (i == 1) {
-          board_[i][j] = 'p';
+          board[i][j] = 'p';
         } else if (i == 6) {
-          board_[i][j] = 'P';
+          board[i][j] = 'P';
         } else {
-          board_[i][j] = ' ';
+          board[i][j] = ' ';
         }
       }
     }
@@ -32,7 +31,7 @@ class Board {
 
   // Returns the piece at the given position, or ' ' if the position is empty.
   char GetPiece(int row, int col) const {
-    return board_[row][col];
+    return board[row][col];
   }
 
   // Makes the given move on the board. Returns true if the move was successful,
@@ -45,13 +44,13 @@ class Board {
     }
 
     // Check that there is a piece at the from position.
-    if (board_[from_row][from_col] == ' ') {
+    if (board[from_row][from_col] == ' ') {
       return false;
     }
 
     // Check that the to position is empty or contains an enemy piece.
-    char from_piece = board_[from_row][from_col];
-    char to_piece = board_[to_row][to_col];
+    char from_piece = board[from_row][from_col];
+    char to_piece = board[to_row][to_col];
     if (from_piece == 'P' || from_piece == 'p') {
       // Pawns can only move diagonally if they are capturing an enemy piece.
       if (from_col != to_col && to_piece == ' ') {
@@ -69,13 +68,13 @@ class Board {
     }
 
     // Make the move.
-    board_[to_row][to_col] = from_piece;
-    board_[from_row][from_col] = ' ';
+    board[to_row][to_col] = from_piece;
+    board[from_row][from_col] = ' ';
     return true;
   }
 
  private:
-  char board_[8][8];
+  char board[8][8];
 };
 
 int ColToInt(char col) {
