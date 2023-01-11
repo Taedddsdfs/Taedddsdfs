@@ -11,6 +11,7 @@ Wish I implemented SDL to show the graphics to make it look like a chess game on
 #include <iostream>
 #include <string>
 #include <random>
+#include <tuple>
 
 // Represents a chess board.
 class Board {
@@ -57,7 +58,7 @@ class Board {
         return false;
       }
       // Pawns can only move forward one space at a time.
-      if (from_row - to_row != 1 && from_row - to_row != -1) {
+      if ((from_row == 1 && to_row - from_row != 1) || (from_row == 6 && to_row - from_row != -1)) {
         return false;
       }
     } else {
@@ -92,7 +93,7 @@ int RowToInt(char row) {
   return -1;
 }
 
-// Prompts the user for a move and returns the move as a pair of (from_row, from_col,
+// Prompts the user for a move and returns the move as a tuple of (from_row, from_col,
 // to_row, to_col). Returns (-1, -1, -1, -1) if the user enters 'q' to quit.
 std::tuple<int, int, int, int> GetUserMove() {
   while (true) {
@@ -116,53 +117,30 @@ std::tuple<int, int, int, int> GetUserMove() {
   }
 }
 
-// Returns a random legal move from the given board.
-std::tuple<int, int, int, int> GetRandomMove(const Board& board) {
-  std::random_device rd;
-  std::mt19937 rng(rd());
-  std::uniform_int_distribution<int> row_dist(0, 7);
-  std::uniform_int_distribution<int> col_dist(0, 7);
-  while (true) {
-    int from_row = row_dist(rng);
-    int from_col = col_dist(rng);
-    int to_row = row_dist(rng);
-    int to_col = col_dist(rng);
-    if (board.MakeMove(from_row, from_col, to_row, to_col)) {
-      return std::make_tuple(from_row, from_col, to_row, to_col);
-    }
-  }
-}
-
-void PrintBoard(const Board& board) {
-  std::cout << "  a b c d e f g h" << std::endl;
-  for (int i = 0; i < 8; i++) {
-    std::cout << (8 - i) << " ";
-    for (int j = 0; j < 8; j++) {
-      std::cout << board.GetPiece(i, j) << " ";
-    }
-    std::cout << std::endl;
-  }
-}
-
 int main() {
   Board board;
   while (true) {
-    PrintBoard(board);
-    std::tuple<int, int, int, int> move = GetUserMove();
-    if (std::get<0>(move) == -1) {
+    // Print the board.
+    for (int i = 0; i < 8; i++) {
+      for (int j = 0; j < 8; j++) {
+        std::cout << board.GetPiece(i, j) << " ";
+      }
+      std::cout << std::endl;
+    }
+
+    // Get the user's move.
+    int from_row, from_col, to_row, to_col;
+    std::tie(from_row, from_col, to_row, to_col) = GetUserMove();
+    if (from_row == -1) {
       break;
     }
-    if (!board.MakeMove(std::get<0>(move), std::get<1>(move),
-                        std::get<2>(move), std::get<3>(move))) {
-      std::cout << "Invalid move." << std::endl;
-      continue;
+
+    // Make the move.
+    if (!board.MakeMove(from_row, from_col, to_row, to_col)) {
+      std::cout << "Invalid move!" << std::endl;
     }
-    PrintBoard(board);
-    move = GetRandomMove(board);
-    std::cout << "Computer moves from " << (char)('a' + std::get<1>(move))
-              << (8 - std::get<0>(move)) << " to "
-              << (char)('a' + std::get<3>(move)) << (8 - std::get<2>(move))
-              << std::endl;
   }
+
   return 0;
 }
+
