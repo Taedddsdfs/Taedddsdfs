@@ -5,7 +5,7 @@ So, for example, "e2" means the square in the fifth column (counting from left t
 
 In this case, "e2 e4" would be a move to move a piece from the e2 square to the e4 square, which is a common move for pawn.
 It is also possible for other pieces, such as knights, to move to the e4 square, but it would depend on the specific position of the pieces on the board.
-Wish I implemented SDL to show the graphics to make it look like a chess game on Mac with no chess AI though.*/
+Wish I implemented SDL to show the graphics to make it look like a chess game on Mac with no chess AI though. I was not able to come up with isKingin*/
 
 
 #include <iostream>
@@ -140,8 +140,26 @@ int main() {
     if (!board.MakeMove(from_row, from_col, to_row, to_col)) {
       std::cout << "Invalid move!" << std::endl;
     }
-  }
+ else{
+    
+    bool king_in_check = checkmate(board); //How should I implement function? Kingincheck and escape, and legal.
+    bool can_move_out_of_check = Escape(board);
+    if(king_in_check && !can_move_out_of_check){
+        std::cout << "Checkmate" << std::endl;
+        gameover = true;
+    }
 
+    bool legal = Legal(board);
+    if(!has_legal_moves){
+        std::cout << "Stalemate" << std::endl;
+        gameover = true;
+    }
+}
+
+}
+   
   return 0;
 }
+
+
 
