@@ -74,93 +74,108 @@ class Board {
     board[from_row][from_col] = ' ';
     return true;
   }
-
- private:
-  char board[8][8];
-};
-
-int ColToInt(char col) {
-  if (col >= 'a' && col <= 'h') {
-    return col - 'a';
-  }
-  return -1;
+  bool isValidMove(int from_row, int from_col, int to_row, int to_col) {
+    char piece = board[from_row][from_col];
+    if (piece == 'P') {
+        // White pawn
+        if (to_row == from_row - 1 && to_col == from_col && board[to_row][to_col] == ' ') {
+            // Move one square forward
+            return true;
+        } else if (to_row == from_row - 1 && abs(to_col - from_col) == 1 && board[to_row][to_col] != ' ') {
+            // Capture an enemy piece
+            return true;
+        } else {
+            return false;
+        }
+    } else if (piece == 'p') {
+        // Black pawn
+        if (to_row == from_row + 1 && to_col == from_col && board[to_row][to_col] == ' ') {
+            // Move one square forward
+            return true;
+        } else if (to_row == from_row + 1 && abs(to_col - from_col) == 1 && board[to_row][to_col] != ' ') {
+            // Capture an enemy piece
+            return true;
+        } else {
+            return false;
+        }
+    }
+    // Handle other pieces here
+    return false;
 }
 
-// Converts a row number (1-8) to a row index (0-7).
-int RowToInt(char row) {
-  if (row >= '1' && row <= '8') {
-    return row - '1';
-  }
-  return -1;
-}
 
-// Prompts the user for a move and returns the move as a tuple of (from_row, from_col,
-// to_row, to_col). Returns (-1, -1, -1, -1) if the user enters 'q' to quit.
-std::tuple<int, int, int, int> GetUserMove() {
-  while (true) {
-    std::cout << "Enter a move (e.g. e2 e4): ";
-    std::string line;
-    std::getline(std::cin, line);
-    if (line == "q") {
-      return std::make_tuple(-1, -1, -1, -1);
+bool isCheckmate(char player) {
+    // Check if the player's king is in check
+    int kingX, kingY;
+    bool kingFound = false;
+    for (int i = 0; i < BOARD_SIZE; i++) {
+        for (int j = 0; j < BOARD_SIZE; j++) {
+            if (board[i][j] == player + ('a' - 'A')) {
+                kingX = i;
+                kingY = j;
+                kingFound = true;
+                break;
+            }
+        }
+        if (kingFound) {
+            break;
+        }
     }
-    if (line.length() != 5) {
-      continue;
+    if (!kingFound) {
+        return true;
     }
-    int from_col = ColToInt(line[0]);
-    int from_row = RowToInt(line[1]);
-    int to_col = ColToInt(line[3]);
-    int to_row = RowToInt(line[4]);
-    if (from_col == -1 || from_row == -1 || to_col == -1 || to_row == -1) {
-      continue;
+    // Check if any of the opponent's pieces can attack the king
+    for (int i = 0; i < BOARD_SIZE; i++) {
+        for (int j = 0; j < BOARD_SIZE; j++) {
+            if (board[i][j] != ' ' && board[i][j] != player && board[i][j] != player + ('a' - 'A')) {
+                if (isValidMove(i, j, kingX, kingY)) {
+                    return false;
+                }
+            }
+        }
     }
-    return std::make_tuple(from_row, from_col, to_row, to_col);
-  }
+    // Check if the king can move to a safe square
+    for (int i = -1; i <= 1; i++) {
+        for (int j = -1; j <= 1; j++) {
+            if (isValidMove(kingX, kingY, kingX + i, kingY + j)) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 int main() {
-  bool gameover = false;
-  Board board;
-  while (!gameover) {
-    // Print the board.
-    for (int i = 0; i < 8; i++) {
-      for (int j = 0; j < 8; j++) {
-        std::cout << board.GetPiece(i, j) << " ";
-      }
-      std::cout << std::endl;
+    Board board;
+    char player = 'w';
+    while (true) {
+        // Print the board
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                std::cout << board.GetPiece(i, j) << " ";
+            }
+            std::cout << std::endl;
+        }
+        std::cout << "Player " << player << " to move: ";
+        std::string move;
+        std::cin >> move;
+        if (move == "q") {
+            break;
+        }
+        int from_col = ColToInt(move[0]);
+        int from_row = RowToInt(move[1]);
+        int to_col = ColToInt(move[3]);
+        int to_row = RowToInt(move[4]);
+        if (isValidMove(from_row, from_col, to_row, to_col) && board.MakeMove(from_row, from_col, to_row, to_col)) {
+            if (isCheckmate(player == 'w' ? 'b' : 'w')) {
+                std::cout << "Checkmate! Player " << player << " wins!" << std::endl;
+                break;
+            }
+            player = (player == 'w' ? 'b' : 'w');
+        } else {
+            std::cout << "Invalid move, please try again." << std::endl;
+        }
     }
-
-    // Get the user's move.
-    int from_row, from_col, to_row, to_col;
-    std::tie(from_row, from_col, to_row, to_col) = GetUserMove();
-    if (from_row == -1) {
-      break;
-    }
-
-    // Make the move.
-    if (!board.MakeMove(from_row, from_col, to_row, to_col)) {
-      std::cout << "Invalid move!" << std::endl;
-    }
- else{
-    
-    bool king_in_check = checkmate(board); //How should I implement function? Kingincheck and escape, and legal.
-    bool can_move_out_of_check = Escape(board);
-    if(king_in_check && !can_move_out_of_check){
-        std::cout << "Checkmate" << std::endl;
-        gameover = true;
-    }
-
-    bool legal = Legal(board);
-    if(!has_legal_moves){
-        std::cout << "Stalemate" << std::endl;
-        gameover = true;
-    }
+    return 0;
 }
-
-}
-   
-  return 0;
-}
-
-
 
