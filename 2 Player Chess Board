@@ -144,6 +144,20 @@ bool isCheckmate(char player) {
     }
     return true;
 }
+int ColToInt(char col) {
+  if (col >= 'a' && col <= 'h') {
+    return col - 'a';
+  }
+  return -1;
+}
+
+// Converts a row number (1-8) to a row index (0-7).
+int RowToInt(char row) {
+  if (row >= '1' && row <= '8') {
+    return row - '1';
+  }
+  return -1;
+}
 
 int main() {
     Board board;
