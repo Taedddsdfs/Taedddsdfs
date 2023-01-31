@@ -15,6 +15,9 @@ I need to handle the game state, check for win/lose condition/
 #include <tuple>
 
 // Represents a chess board.
+
+const int BOARD_SIZE = 8;
+char board[BOARD_SIZE][BOARD_SIZE];
 class Board {
  public:
   Board() {
@@ -36,8 +39,8 @@ class Board {
     return board[row][col];
   }
 
-  // Makes the given move on the board. Returns true if the move was successful,
-  // false otherwise.
+  // Makes the given move on the board. Returns true if the move was successful.
+ 
   bool MakeMove(int from_row, int from_col, int to_row, int to_col) {
     // Check that the from and to positions are on the board.
     if (from_row < 0 || from_row >= 8 || from_col < 0 || from_col >= 8 ||
