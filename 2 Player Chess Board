@@ -3,10 +3,11 @@
 The squares are represented by a letter and a number, where the letter indicates the column (a-h) and the number indicates the row (1-8). 
 So, for example, "e2" means the square in the fifth column (counting from left to right) and the second row (counting from bottom to top).
 
-In this case, "e2 e4" would be a move to move a piece from the e2 square to the e4 square, which is a common move for pawn.
+What I tried to think of was "e2 e4",which would be a move to move a piece from the e2 square to the e4 square, which is legal for pawn.
 It is also possible for other pieces, such as knights, to move to the e4 square, but it would depend on the specific position of the pieces on the board.
 Wish I implemented SDL to show the graphics to make it look like a chess game on Mac with no chess AI though. I was not able to come up with isKingin*
 I need to handle the game state, check for win/lose condition (Incomplete) */
+
 #include <iostream>
 #include <string>
 #include <random>
@@ -33,7 +34,7 @@ class Board {
   }
 
 
-  // Returns the piece at the given position, or ' ' if the position is empty.
+  // Returns the piece at the given position
   char GetPiece(int row, int col){
     return board[row][col];
   }
