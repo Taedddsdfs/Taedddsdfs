@@ -6,9 +6,7 @@ So, for example, "e2" means the square in the fifth column (counting from left t
 In this case, "e2 e4" would be a move to move a piece from the e2 square to the e4 square, which is a common move for pawn.
 It is also possible for other pieces, such as knights, to move to the e4 square, but it would depend on the specific position of the pieces on the board.
 Wish I implemented SDL to show the graphics to make it look like a chess game on Mac with no chess AI though. I was not able to come up with isKingin*
-I need to handle the game state, check for win/lose condition/
-
-
+I need to handle the game state, check for win/lose condition (Incomplete) */
 #include <iostream>
 #include <string>
 #include <random>
@@ -34,8 +32,9 @@ class Board {
     }
   }
 
+
   // Returns the piece at the given position, or ' ' if the position is empty.
-  char GetPiece(int row, int col) const {
+  char GetPiece(int row, int col){
     return board[row][col];
   }
 
@@ -102,7 +101,6 @@ class Board {
             return false;
         }
     }
-    // Handle other pieces here
     return false;
 }
 
@@ -161,6 +159,7 @@ int RowToInt(char row) {
   }
   return -1;
 }
+};
 
 int main() {
     Board board;
@@ -171,7 +170,7 @@ int main() {
             for (int j = 0; j < 8; j++) {
                 std::cout << board.GetPiece(i, j) << " ";
             }
-            std::cout << std::endl;
+            std::cout <<std::endl;
         }
         std::cout << "Player " << player << " to move: ";
         std::string move;
@@ -179,12 +178,12 @@ int main() {
         if (move == "q") {
             break;
         }
-        int from_col = ColToInt(move[0]);
-        int from_row = RowToInt(move[1]);
-        int to_col = ColToInt(move[3]);
-        int to_row = RowToInt(move[4]);
-        if (isValidMove(from_row, from_col, to_row, to_col) && board.MakeMove(from_row, from_col, to_row, to_col)) {
-            if (isCheckmate(player == 'w' ? 'b' : 'w')) {
+        int from_col = board.ColToInt(move[0]);
+        int from_row = board.RowToInt(move[1]);
+        int to_col = board.ColToInt(move[3]);
+        int to_row = board.RowToInt(move[4]);
+        if (board.isValidMove(from_row, from_col, to_row, to_col) && board.MakeMove(from_row, from_col, to_row, to_col)) {
+            if (board.isCheckmate(player == 'w' ? 'b' : 'w')) {
                 std::cout << "Checkmate! Player " << player << " wins!" << std::endl;
                 break;
             }
@@ -195,4 +194,3 @@ int main() {
     }
     return 0;
 }
-
