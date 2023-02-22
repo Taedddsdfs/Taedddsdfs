@@ -1,0 +1,78 @@
+//Prime fizzbuzz
+
+#include <iostream>
+using namespace std;
+int main() {
+    int n;
+    cin>>n;
+int count =0;
+    for (int i = 1; i <= n; i++) {
+
+        for(int j =2;j<i;j++) {
+            if(i%j==0&&i!=j) {
+                count++;
+                break;
+            }
+        }
+
+        if(count>0||i==1) {
+            count = 0;
+        if (i % 3 == 0 && i % 5 == 0) {
+            cout << "FizzBuzz\n";
+        } else if (i % 3 == 0) {
+            cout << "Fizz\n";
+        } else if (i % 5 == 0) {
+            cout << "Buzz\n";
+        } else {
+            cout << i << "\n";
+        }
+
+        }
+
+        else {
+              cout<<"Prime\n";
+              count =0;
+        }
+    
+    }
+
+    return 0;
+
+    }
+
+
+
+
+//Prioritizing Pi
+#include <iostream>
+#include <string>
+#include <cmath>
+
+using namespace std;
+
+int main() {
+    int p, n;
+    cin >> p >> n;
+
+    // Convert pi to a string and extract the first 'p' digits
+    string pi_str = to_string(M_PI).substr(0, p);
+
+    for (int i = 1; i <= n; i++) {
+        string i_str = to_string(i);
+
+        // Check if the input number is present in the first 'p' digits of pi
+        if (pi_str.find(i_str) != string::npos) {
+            cout << "Pi\n";
+        } else if (i % 3 == 0 && i % 5 == 0) {
+            cout << "FizzBuzz\n";
+        } else if (i % 3 == 0) {
+            cout << "Fizz\n";
+        } else if (i % 5 == 0) {
+            cout << "Buzz\n";
+        } else {
+            cout << i << "\n";
+        }
+    }
+
+    return 0;
+}
